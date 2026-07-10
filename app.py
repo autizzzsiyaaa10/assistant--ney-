@@ -48,100 +48,6 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     /* Style headers beautifully */
-    h1 {
-        background: linear-gradient(45deg, #B3C5FF, #D6BBFB, #FFC5E3);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800 !important;
-    }
-    /* Round corners on chat inputs */
-    .stChatInputContainer {
-        border-radius: 20px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
-# --- 3. FAILSAFE SIDEBAR CONTROL CENTER ---
-with st.sidebar:
-    st.markdown("### 🌸 ney Settings Center")
-    st.caption("Fine-tune configurations for optimal performance.")
-    st.write("---")
-    
-    # AI Performance Adjustments
-    ai_creativity = st.slider(
-        "Creativity Profile (Temperature)",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.65,
-        step=0.05,
-        help="Lower values yield highly accurate response formatting; higher values increase wit."
-    )
-    
-    # ANTI-GLITCH SAFETY TOGGLE: Allows switching models instantly if an API endpoint acts up
-    model_tier = st.selectbox(
-        "AI Engine Core",
-        options=["gemini-1.5-flash", "gemini-1.5-pro"],
-        index=0,
-        help="Flash is incredibly fast; Pro handles deeply complex logical sequences."
-    )
-    
-    st.write("---")
-    st.markdown("#### ⚙️ Security Guard")
-    
-    # Secure API Extraction Check
-    api_source = os.environ.get("GEMINI_API_KEY", "")
-    if api_source:
-        st.success("✨ System Authenticated via Environment")
-    else:
-        user_key = st.text_input("🔑 Provide Gemini Key:", type="password", placeholder="AI key...")
-        if user_key:
-            genai.configure(api_key=user_key)
-            st.success("✨ System Authenticated Manually")
-        else:
-            st.warning("Awaiting secure key inputs to boot up AI pipelines.")
-
-
-# --- 4. OPTIMIZED ZERO-GLITCH MODEL ENGINE ---
-@st.cache_resource
-def get_failsafe_model(temperature, chosen_model):
-    system_instruction = (
-        "Your name is ney. You are an exceptionally brilliant, professional, cute, "
-        "and encouraging AI companion. You help users solve engineering problems, analyze "
-        "data, and map out concepts. Keep responses exquisitely organized using markdown tables, "
-        "bullet points, or bold structural accents. Always greet the user warmly as ney."
-    )
-    
-    generation_config = {
-        "temperature": temperature,
-        "top_p": 0.90,
-        "top_k": 40,
-        "max_output_tokens": 8192,
-    }
-    
-    return genai.GenerativeModel(
-        model_name=chosen_model,
-        generation_config=generation_config,
-        system_instruction=system_instruction
-    )
-
-if api_source:
-    genai.configure(api_key=api_source)
-
-# Failsafe fallback execution block
-try:
-    model = get_failsafe_model(ai_creativity, model_tier)
-except Exception as fallback_error:
-    # If chosen core fails, default to secondary stable branch automatically
-    try:
-        model = get_failsafe_model(0.5, "gemini-1.5-flash")
-    except Exception as severe_err:
-        st.error(f"Critical System Initialization Halt: {severe_err}")
-
-
-# --- 5. DATA PERSISTENCE & MEMORY PIPELINES ---
-if "chat_session" not in st.session_state and 'model' in locals():
-    st.session_state.chat_session = model.start_chat(history=[])
 if "message_count" not in st.session_state:
     st.session_state.message_count = 0
 
@@ -205,4 +111,5 @@ if "chat_session" in st.session_state and len(st.session_state.chat_session.hist
         file_name=f"ney_session_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
         mime="text/markdown"
   )
+
   
